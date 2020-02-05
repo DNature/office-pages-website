@@ -1,131 +1,136 @@
 /* Needed gulp config */
 
-var gulp = require('gulp');  
-var sass = require('gulp-sass');
-var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
-var notify = require('gulp-notify');
-var minifycss = require('gulp-minify-css');
-var concat = require('gulp-concat');
-var plumber = require('gulp-plumber');
-var browserSync = require('browser-sync');
-var reload = browserSync.reload;
-const sourcemaps = require('gulp-sourcemaps');
-const autoprefixer = require('gulp-autoprefixer');
+var gulp = require("gulp");
+var plumber = require("gulp-plumber");
+const imagemin = require("gulp-imagemin");
+const uglify = require("gulp-uglify");
+const rename = require("gulp-rename");
+const concat = require("gulp-concat");
+const sourcemaps = require("gulp-sourcemaps");
+const autoprefixer = require("gulp-autoprefixer");
+const sass = require("gulp-sass");
+const cleanCSS = require("gulp-clean-css");
+const browserSync = require("browser-sync");
 
-/* Setup scss path */
-var paths = {
-    scss: './sass/*.scss'
-};
+const reload = browserSync.reload;
 
-/* Scripts task */
-gulp.task('scripts', function() {
-  return gulp.src([
-    /* Add your JS files here, they will be combined in this order */
-    'js/vendor/jquery.min.js',
-    'js/vendor/jquery.easing.1.3.js',
-    'js/vendor/jquery.stellar.min.js',
-    'js/vendor/owl.carousel.min.js',
-    'js/vendor/bootstrap.min.js',
-    'js/vendor/jquery.waypoints.min.js'
-    ])
-    .pipe(concat('scripts.js'))
-    .pipe(gulp.dest('js'))
-    .pipe(rename({suffix: '.min'}))
-    .pipe(uglify())
-    .pipe(gulp.dest('js'));
-});
-
-gulp.task('minify-custom', function() {
-  return gulp.src([
-    /* Add your JS files here, they will be combined in this order */
-    'js/custom.js'
-    ])
-    .pipe(rename({suffix: '.min'}))
-    .pipe(uglify())
-    .pipe(gulp.dest('js'));
-});
-
-/* Sass task */
-gulp.task('sass', function () {  
-    gulp.src('scss/style.scss')
+function imagesFunc() {
+  return gulp
+    .src(["img/*"])
     .pipe(plumber())
-    .pipe(sass({
-      errLogToConsole: true,
+    .pipe(
+      imagemin([
+        imagemin.gifsicle({ interlaced: true }),
+        imagemin.mozjpeg({ quality: 75, progressive: true }),
+        imagemin.optipng({ optimizationLevel: 5 })
+      ])
+    )
+    .pipe(gulp.dest("img"));
+}
 
-      //outputStyle: 'compressed',
-      // outputStyle: 'compact',
-      // outputStyle: 'nested',
-      outputStyle: 'expanded',
-      precision: 10
-    }))
+function scripts() {
+  return gulp
+    .src([
+      /* Add your JS files here, they will be combined in this order */
+      "js/vendor/jquery.min.js",
+      "js/vendor/jquery.easing.1.3.js",
+      "js/vendor/jquery.stellar.min.js",
+      "js/vendor/owl.carousel.min.js",
+      "js/vendor/bootstrap.min.js",
+      "js/vendor/jquery.waypoints.min.js"
+    ])
+    .pipe(concat("scripts.js"))
+    .pipe(gulp.dest("js"))
+    .pipe(rename({ suffix: ".min" }))
+    .pipe(uglify())
+    .pipe(gulp.dest("js"));
+}
 
-    .pipe(sourcemaps.init())
-    .pipe(autoprefixer({
-        browsers: ['last 2 versions'],
-        cascade: false
-    }))
-    .pipe(gulp.dest('css'))
+function minifyCustom() {
+  return gulp
+    .src([
+      /* Add your JS files here, they will be combined in this order */
+      "js/custom.js"
+    ])
+    .pipe(rename({ suffix: ".min" }))
+    .pipe(uglify())
+    .pipe(gulp.dest("js"));
+}
 
-    .pipe(rename({suffix: '.min'}))
-    .pipe(minifycss())
-    .pipe(gulp.dest('css'))
-    /* Reload the browser CSS after every change */
-    .pipe(reload({stream:true}));
-});
+function minifySass() {
+  return (
+    gulp
+      .src("scss/style.scss")
+      .pipe(plumber())
+      .pipe(
+        sass({
+          errLogToConsole: true,
 
-gulp.task('merge-styles', function () {
+          //outputStyle: 'compressed',
+          // outputStyle: 'compact',
+          // outputStyle: 'nested',
+          outputStyle: "expanded",
+          precision: 10
+        })
+      )
 
-    return gulp.src([
-        'css/vendor/bootstrap.min.css',
-        'css/vendor/animate.css',
-        'css/vendor/icomoon.css',
-        'css/vendor/owl.carousel.min.css',
-        'css/vendor/owl.theme.default.min.css',
-        'fonts/icomoon/style.css',
-        'css/style.css'
-        ])
-        // .pipe(sourcemaps.init())
-        // .pipe(autoprefixer({
-        //     browsers: ['last 2 versions'],
-        //     cascade: false
-        // }))
-        .pipe(concat('styles-merged.css'))
-        .pipe(gulp.dest('css'))
-        // .pipe(rename({suffix: '.min'}))
-        // .pipe(minifycss())
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('css'))
-        .pipe(reload({stream:true}));
-});
+      .pipe(sourcemaps.init())
+      .pipe(
+        autoprefixer({
+          browsers: ["last 2 versions"],
+          cascade: false
+        })
+      )
+      .pipe(gulp.dest("css"))
 
-/* Reload task */
-gulp.task('bs-reload', function () {
-    browserSync.reload();
-});
+      .pipe(rename({ suffix: ".min" }))
+      .pipe(cleanCSS({ compatibility: "ie8" }))
+      .pipe(gulp.dest("css"))
+      .pipe(sourcemaps.write())
+      /* Reload the browser CSS after every change */
+      .pipe(reload({ stream: true }))
+  );
+}
 
-/* Prepare Browser-sync for localhost */
-gulp.task('browser-sync', function() {
-    browserSync.init(['css/*.css', 'js/*.js'], {
-        /*
-        I like to use a vhost, WAMP guide: https://www.kristengrote.com/blog/articles/how-to-set-up-virtual-hosts-using-wamp, XAMP guide: http://sawmac.com/xampp/virtualhosts/
-        */
-        proxy: 'localhost/probootstrap/inspire'
-        /* For a static server you would use this: */
-        /*
-        server: {
-            baseDir: './'
-        }
-        */
-    });
-});
+function mergeFiles() {
+  return (
+    gulp
+      .src([
+        "css/vendor/bootstrap.min.css",
+        "css/vendor/animate.css",
+        "css/vendor/icomoon.css",
+        "css/vendor/owl.carousel.min.css",
+        "css/vendor/owl.theme.default.min.css",
+        "css/style.css"
+      ])
+      // .pipe(sourcemaps.init())
+      // .pipe(autoprefixer({
+      //     browsers: ['last 2 versions'],
+      //     cascade: false
+      // }))
+      .pipe(concat("styles-merged.css"))
+      .pipe(gulp.dest("css"))
+      .pipe(rename({ suffix: ".min" }))
+      //   .pipe(cleanCSS({ compatibility: "ie8" }))
+      .pipe(sourcemaps.write("."))
+      .pipe(gulp.dest("css"))
+      .pipe(reload({ stream: true }))
+  );
+}
 
-/* Watch scss, js and html files, doing different things with each. */
-gulp.task('default', ['sass', 'scripts', 'browser-sync'], function () {
-    /* Watch scss, run the sass task on change. */
-    gulp.watch(['scss/*.scss', 'scss/**/*.scss'], ['sass'])
-    /* Watch app.js file, run the scripts task on change. */
-    gulp.watch(['js/custom.js'], ['minify-custom'])
-    /* Watch .html files, run the bs-reload task on change. */
-    gulp.watch(['*.html'], ['bs-reload']);
-});
+function watchFiles() {
+  gulp.watch("./img/*", imagesFunc);
+  gulp.watch("js/custom.js", minifyCustom);
+  gulp.watch(["scss/*.scss", "scss/**/*.scss"], minifyCustom);
+}
+
+gulp.task(
+  "start",
+  gulp.series(
+    // scripts,
+    minifySass,
+    minifyCustom,
+    mergeFiles
+    // watchFiles
+  )
+);

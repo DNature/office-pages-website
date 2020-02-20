@@ -3,8 +3,8 @@ https://officepages.netlify.com/* https://officepages.co
 # These rules will change if you change your site’s custom domains or HTTPS settings
 
 # Redirect domain aliases to primary domain
-https://www.officepages.ng https://officepages.co/index.html
-https://officepages.ng https://officepages.co/index.html
+# https://www.officepages.ng https://officepages.co/index.html
+# https://officepages.ng https://officepages.co/index.html
 
 # Optional: Redirect default Netlify subdomain to primary domain
 https://officepages.netlify.com https://officepages.co/index.html
